@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "usbd_cdc_if.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,7 +32,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define RX_USB_DATA_SIZE 4096
+#define TX_USB_DATA_SIZE 512
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -44,7 +45,9 @@
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-
+uint8_t MainUsbRxBuffer[RX_USB_DATA_SIZE],
+		MainUsbTxBuffer[TX_USB_DATA_SIZE] = "Ada\n";
+uint32_t RxBufferSize = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,7 +99,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  TIM3->CCR2 = val; // Pulse channel 2
+  TIM3->CCR2 = 233; // Pulse channel 2
   HAL_TIM_PWM_Start_IT(&htim3, TIM_CHANNEL_2);
 
   while (1)
@@ -104,6 +107,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+	if(RxBufferSize != 0){
+		//CDC_Transmit_FS(&MainUsbTxBuffer[0], 4); // For protocol ada
+		RxBufferSize = 0; // Avoiding overflow MainUsbRxBuffer
+	}
   }
   /* USER CODE END 3 */
 }
@@ -222,6 +230,18 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void CDC_Receive_Callback(uint8_t* Buf, uint32_t *Len)
+{
+	if(RxBufferSize + *Len >= RX_USB_DATA_SIZE)
+		*Len = RX_USB_DATA_SIZE - RxBufferSize; // Erase overflow data
+
+	if(*Len != 0)
+	{
+		memcpy(&MainUsbRxBuffer[RxBufferSize], Buf, *Len);
+		RxBufferSize += *Len;
+	}
+}
 
 /* USER CODE END 4 */
 
