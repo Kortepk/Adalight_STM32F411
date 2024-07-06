@@ -65,6 +65,13 @@ void Error_Handler(void);
 #define LED_NUM 98
 // expected message length
 #define EXP_ADA_SIZE LED_NUM * 3 + 5
+
+struct RGB_LED {
+    int r;
+    int g;
+    int b;
+};
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
