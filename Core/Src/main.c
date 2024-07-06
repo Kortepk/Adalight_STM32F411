@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "usbd_cdc_if.h"
+#include "Ada.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,9 +109,20 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	if(RxBufferSize != 0){
-		//CDC_Transmit_FS(&MainUsbTxBuffer[0], 4); // For protocol ada
-		RxBufferSize = 0; // Avoiding overflow MainUsbRxBuffer
+	if(RxBufferSize >= EXP_ADA_SIZE){
+		// protocol ada processing
+
+		uint32_t trim_index = Processing_rx_buffer(&MainUsbRxBuffer[0], RxBufferSize);
+
+		uint32_t shift_index = 0;
+
+		while(trim_index < RxBufferSize){ // Shift all buffer closer to the beginning
+			MainUsbRxBuffer[shift_index] = MainUsbRxBuffer[trim_index];
+			shift_index ++;
+			trim_index ++;
+		}
+
+		RxBufferSize = shift_index; // Save new size
 	}
   }
   /* USER CODE END 3 */

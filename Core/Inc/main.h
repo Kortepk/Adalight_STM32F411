@@ -61,7 +61,10 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 
 /* USER CODE BEGIN Private defines */
-
+// Number LED strip
+#define LED_NUM 98
+// expected message length
+#define EXP_ADA_SIZE LED_NUM * 3 + 5
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
