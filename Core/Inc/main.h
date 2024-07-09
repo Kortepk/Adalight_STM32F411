@@ -65,12 +65,15 @@ void Error_Handler(void);
 #define LED_NUM 98
 // expected message length
 #define EXP_ADA_SIZE LED_NUM * 3 + 5
+// For dma array
+#define LED_BITS_NUM LED_NUM * 3 * 8 + 50
 
 struct RGB_LED {
-    int r;
-    int g;
-    int b;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
 };
+
 
 /* USER CODE END Private defines */
 

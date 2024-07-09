@@ -8,14 +8,12 @@
 #include <stm32f4xx_hal.h>
 #include "main.h"
 
-struct RGB_LED LED_data[LED_NUM];
-
 /*
  * Function convert raw rgb value to array rgb
  * arg: StartIndex - pointer to an rx buffer, len - length rx buffer
  * return: The length processed by the function
  */
-uint32_t Processing_rx_buffer(uint8_t* StartIndex, uint32_t len)
+uint32_t Processing_rx_buffer(uint8_t* StartIndex, uint32_t len, struct RGB_LED* LED_data)
 {
 	uint32_t i = 0, Shift;
 	for(i = 0; i < len - 2; i++)

@@ -44,16 +44,24 @@
 
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim3;
+DMA_HandleTypeDef hdma_tim3_ch2;
 
 /* USER CODE BEGIN PV */
 uint8_t MainUsbRxBuffer[RX_USB_DATA_SIZE],
 		MainUsbTxBuffer[TX_USB_DATA_SIZE] = "Ada\n";
+
+uint8_t PwmValue[LED_BITS_NUM]; // Buffer for TIM3 DMA; +50 for RET code (62.5 us)
+
 uint32_t RxBufferSize = 0;
+
+struct RGB_LED LED_data[LED_NUM];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -92,6 +100,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM3_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
@@ -100,9 +109,6 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  TIM3->CCR2 = 233; // Pulse channel 2
-  HAL_TIM_PWM_Start_IT(&htim3, TIM_CHANNEL_2);
-
   while (1)
   {
     /* USER CODE END WHILE */
@@ -112,9 +118,12 @@ int main(void)
 	if(RxBufferSize >= EXP_ADA_SIZE){
 		// protocol ada processing
 
-		uint32_t trim_index = Processing_rx_buffer(&MainUsbRxBuffer[0], RxBufferSize);
+		uint32_t trim_index = Processing_rx_buffer(&MainUsbRxBuffer[0], RxBufferSize, &LED_data[0]);
 
 		uint32_t shift_index = 0;
+
+		ConvertColorToTim(&LED_data[0], &PwmValue[0]);
+		HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_2, &PwmValue, LED_BITS_NUM);
 
 		while(trim_index < RxBufferSize){ // Shift all buffer closer to the beginning
 			MainUsbRxBuffer[shift_index] = MainUsbRxBuffer[trim_index];
@@ -192,9 +201,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 7500-1;
+  htim3.Init.Prescaler = 75-1;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 800-1;
+  htim3.Init.Period = 3-1;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
@@ -208,7 +217,7 @@ static void MX_TIM3_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 533;
+  sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
@@ -219,6 +228,22 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 2 */
   HAL_TIM_MspPostInit(&htim3);
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Stream5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
 
 }
 
