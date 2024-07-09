@@ -7,6 +7,7 @@
 
 #include <stm32f4xx_hal.h>
 #include "main.h"
+#include "Ada.h"
 
 /*
  * Function convert raw rgb value to array rgb

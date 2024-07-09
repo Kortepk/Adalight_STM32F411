@@ -8,6 +8,6 @@
 #ifndef INC_WS2812_H_
 #define INC_WS2812_H_
 
-
+void ConvertColorToTim(struct RGB_LED* LED_data, uint8_t* PwmValue);
 
 #endif /* INC_WS2812_H_ */

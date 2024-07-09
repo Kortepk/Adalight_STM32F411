@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "usbd_cdc_if.h"
 #include "Ada.h"
+#include "WS2812.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -123,7 +124,7 @@ int main(void)
 		uint32_t shift_index = 0;
 
 		ConvertColorToTim(&LED_data[0], &PwmValue[0]);
-		HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_2, &PwmValue, LED_BITS_NUM);
+		HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_2, &PwmValue[0], LED_BITS_NUM);
 
 		while(trim_index < RxBufferSize){ // Shift all buffer closer to the beginning
 			MainUsbRxBuffer[shift_index] = MainUsbRxBuffer[trim_index];
