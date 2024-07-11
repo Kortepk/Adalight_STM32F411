@@ -8,13 +8,13 @@
 #include "main.h"
 #include "WS2812.h"
 
-void ConvertColorToTim(struct RGB_LED* LED_data, uint8_t* PwmValue)
+void ConvertColorToTim(struct RGB_LED* LED_data, uint32_t* PwmValue)
 {
 	uint32_t i, PwmIndex = 0, col = 0;
 	int j;
 	for(i = 0; i < LED_NUM; i ++)
 	{
-		col = (LED_data[i].g << 23) | (LED_data[i].r << 16) | (LED_data[i].b);
+		col = (LED_data[i].g << 16) | (LED_data[i].r << 8) | (LED_data[i].b);
 		for(j = 23; j >= 0; j --)
 		{
 			if(col & (1 << j))  // We check every bit

@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define LED_Pin GPIO_PIN_13
+#define LED_GPIO_Port GPIOC
 
 /* USER CODE BEGIN Private defines */
 // Number LED strip
@@ -69,9 +71,9 @@ void Error_Handler(void);
 #define LED_BITS_NUM LED_NUM * 3 * 8 + 50
 
 struct RGB_LED {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
+    uint32_t r;
+    uint32_t g;
+    uint32_t b;
 };
 
 

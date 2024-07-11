@@ -47,9 +47,9 @@ uint32_t Processing_rx_buffer(uint8_t* StartIndex, uint32_t len, struct RGB_LED*
 
 	for(i = 0; i < size_data; i++, RunningIndex += 3)
 	{
-		LED_data[i].r = RunningIndex[0];
-		LED_data[i].g = RunningIndex[1];
-		LED_data[i].b = RunningIndex[2];
+		LED_data[i].r = (uint32_t)RunningIndex[0];
+		LED_data[i].g = (uint32_t)RunningIndex[1];
+		LED_data[i].b = (uint32_t)RunningIndex[2];
 	}
 
 	return Shift + i * 3;

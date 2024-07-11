@@ -51,7 +51,7 @@ DMA_HandleTypeDef hdma_tim3_ch2;
 uint8_t MainUsbRxBuffer[RX_USB_DATA_SIZE],
 		MainUsbTxBuffer[TX_USB_DATA_SIZE] = "Ada\n";
 
-uint8_t PwmValue[LED_BITS_NUM]; // Buffer for TIM3 DMA; +50 for RET code (62.5 us)
+uint32_t PwmValue[LED_BITS_NUM]; // Buffer for TIM3 DMA; +50 for RET code (62.5 us)
 
 uint32_t RxBufferSize = 0;
 
@@ -110,6 +110,10 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  for(uint32_t i=0; i<LED_BITS_NUM; i ++) // Test strip and bus
+	PwmValue[i] = i % 4;
+
   while (1)
   {
     /* USER CODE END WHILE */
@@ -117,12 +121,15 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	if(RxBufferSize >= EXP_ADA_SIZE){
+#ifdef LED_TEST
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+#endif
 		// protocol ada processing
-
 		uint32_t trim_index = Processing_rx_buffer(&MainUsbRxBuffer[0], RxBufferSize, &LED_data[0]);
 
 		uint32_t shift_index = 0;
 
+		HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_2);
 		ConvertColorToTim(&LED_data[0], &PwmValue[0]);
 		HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_2, &PwmValue[0], LED_BITS_NUM);
 
@@ -134,6 +141,10 @@ int main(void)
 
 		RxBufferSize = shift_index; // Save new size
 	}
+#ifdef LED_TEST
+	if (TIM_CHANNEL_STATE_GET(&htim3, TIM_CHANNEL_2) == HAL_TIM_CHANNEL_STATE_READY)
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+#endif
   }
   /* USER CODE END 3 */
 }
@@ -202,7 +213,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 75-1;
+  htim3.Init.Prescaler = 25-1;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 3-1;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -255,13 +266,27 @@ static void MX_DMA_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
+#if !defined(LED_TEST)
+  return;
+#endif
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : LED_Pin */
+  GPIO_InitStruct.Pin = LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
